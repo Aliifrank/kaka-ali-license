@@ -1,35 +1,19 @@
 from flask import Flask, request, jsonify
-import json
-from datetime import datetime
 
 app = Flask(__name__)
 
-def load_licenses():
-    with open("licenses.json", "r") as f:
-        return json.load(f)
+licenses = {
+    "abc123": "2025-12-01",
+    "def456": "2025-06-30"
+}
 
-def save_licenses(data):
-    with open("licenses.json", "w") as f:
-        json.dump(data, f)
-
-@app.route("/")
-def index():
-    return "Kaka Ali License API is running."
-
-@app.route("/check", methods=["POST"])
-def check_license():
-    data = request.json
-    code = data.get("license")
-    today = datetime.today().strftime("%Y-%m-%d")
-
-    licenses = load_licenses()
+@app.route("/check", methods=["GET"])
+def check():
+    code = request.args.get("code")
     if code in licenses:
-        exp_date = licenses[code]["expires"]
-        if exp_date >= today:
-            return jsonify({"status": "valid", "expires": exp_date})
-        else:
-            return jsonify({"status": "expired", "expires": exp_date})
-    return jsonify({"status": "invalid"})
+        return jsonify({"status": "valid", "expire_date": licenses[code]})
+    else:
+        return jsonify({"status": "invalid"}), 404
 
 if __name__ == "__main__":
-    app.run()
+    app.run(debug=True)
